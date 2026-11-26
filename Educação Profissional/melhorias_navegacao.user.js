@@ -201,7 +201,7 @@
 function criarLinksRelatorioCards() {
     if (!window.location.pathname.endsWith('/my/courses.php')) return;
     const cards = document.querySelectorAll('.card.course-card');
-    
+
     if (!cards.length) return;
 
     function extrairNomeDoCard(card) {
@@ -922,7 +922,7 @@ function criarBotaoRelatorioConclusao() {
     // Verifica se a URL é de um módulo específico onde o ID não é do curso
     const urlAtual = window.location.pathname.toLowerCase();
     const modulosExclusos = ['/mod/url/view.php', '/mod/h5pactivity/view.php', '/mod/assign/view.php','/course/section.php'];
-    
+
     const ehModuloExcluido = modulosExclusos.some(modulo => urlAtual.includes(modulo));
 
     // Se está em módulo excluído, ignora o ID da URL e tenta usar o sessionStorage
@@ -974,7 +974,7 @@ function criarBotaoRelatorioConclusao() {
 function criarBotoesFooter() {
     const footerContainer = document.querySelector('[data-region="footer-container-popover"]');
     if (!footerContainer) return;
-    
+
     // Adiciona a regra CSS para ajustar o bottom do elemento com id "boost-union-footer-buttons"
     const style = document.createElement("style");
     style.textContent = `
@@ -994,7 +994,7 @@ function criarBotoesFooter() {
     botoesContainer.style.marginRight = "50px";
 
     const botaoAlternarBreadcrumb = document.createElement("button");
-    botaoAlternarBreadcrumb.textContent = "🔁"; 
+    botaoAlternarBreadcrumb.textContent = "🔁";
     botaoAlternarBreadcrumb.title = "Alterar estilo do Breadcrumb";
     botaoAlternarBreadcrumb.className = "btn";
     botaoAlternarBreadcrumb.style.padding = "0 10px";
@@ -1488,98 +1488,98 @@ function abrirModalRegistros(lista, tituloModal = "Links dos Registros") {
     // ============================================================
     // NOTAS DOS ALUNOS - TABELA DE CONCLUSÃO
     // ============================================================
-    
+
     const StudentGrades = (() => {
         'use strict';
-    
+
         const CONFIG = {
             tableSelector: '#completion-progress',
             headerSelector: 'th.completion-header[scope="col"]',
             cellSelector: 'td.completion-progresscell',
-    
+
             headerClass: 'nota',
             cellClass: 'nota-atual',
-    
+
             headerLabel: 'Nota',
-    
+
             // Nota atribuída por atividade:
             completedValue: 10,
             incompleteValue: 0,
-    
+
             decimalPlaces: 2,
         };
-    
+
         // --------------------------------------------------------
         // Localiza a tabela
         // --------------------------------------------------------
         function getTable() {
             return document.querySelector(CONFIG.tableSelector);
         }
-    
+
         // --------------------------------------------------------
         // Cria o cabeçalho da coluna Nota
         // --------------------------------------------------------
         function createHeader() {
             const table = getTable();
             if (!table) return;
-    
+
             const headers = table.querySelectorAll(CONFIG.headerSelector);
             if (!headers.length) return;
-    
+
             const lastHeader = headers[headers.length - 1];
-    
+
             // Evita duplicação
             if (table.querySelector(`th.${CONFIG.headerClass}`)) return;
-    
+
             const th = document.createElement('th');
             th.className = CONFIG.headerClass;
             th.scope = 'col';
             th.textContent = CONFIG.headerLabel;
-    
+
             // Insere imediatamente após o último cabeçalho de atividade
             lastHeader.insertAdjacentElement('afterend', th);
         }
-    
+
         // --------------------------------------------------------
         // Identifica se uma atividade está concluída
         // --------------------------------------------------------
         function isCompleted(cell) {
         const img = cell.querySelector('img');
         if (!img) return false;
-    
+
         // Verifica o endereço da imagem
         const src = (
             img.getAttribute('src') ||
             img.getAttribute('data-savepage-src') ||
             ''
         ).toLowerCase();
-    
+
         // Verifica os textos de descrição
         const alt = (img.getAttribute('alt') || '').toLowerCase();
         const title = (img.getAttribute('title') || '').toLowerCase();
-    
+
         // Identificação direta do Moodle
         if (src.includes('completion-auto-y')) return true;
         if (src.includes('completion-manual-y')) return true;
-    
+
         if (src.includes('completion-auto-n')) return false;
         if (src.includes('completion-manual-n')) return false;
-    
+
         // Fallback baseado no texto
         if (alt.includes('concluído') || alt.includes('concluido')) return true;
         if (title.includes('concluído') || title.includes('concluido')) return true;
-    
+
         return false;
     }
-    
+
         // --------------------------------------------------------
         // Calcula média de conclusão das atividades
         // --------------------------------------------------------
         function calculateAverage(cells) {
             cells = Array.from(cells);
-    
+
             if (cells.length === 0) return null;
-    
+
             const total = cells.reduce((sum, cell) => {
                 return sum + (
                     isCompleted(cell)
@@ -1587,94 +1587,95 @@ function abrirModalRegistros(lista, tituloModal = "Links dos Registros") {
                     : CONFIG.incompleteValue
                 );
             }, 0);
-    
+
             return total / cells.length;
         }
-    
+
         // --------------------------------------------------------
         // Formata o valor da nota
         // --------------------------------------------------------
         function formatGrade(value) {
             return value.toFixed(CONFIG.decimalPlaces);
         }
-    
+
         // --------------------------------------------------------
         // Cria ou atualiza a célula de nota de um aluno
         // --------------------------------------------------------
         function updateStudentRow(row) {
             const activityCells = row.querySelectorAll(CONFIG.cellSelector);
-    
+
             if (!activityCells.length) return;
-    
+
             let gradeCell = row.querySelector(`td.${CONFIG.cellClass}`);
-    
+
             // Cria a célula caso ainda não exista
             if (!gradeCell) {
                 gradeCell = document.createElement('td');
                 gradeCell.className = CONFIG.cellClass;
                 row.appendChild(gradeCell);
             }
-    
+
             const average = calculateAverage(activityCells);
-    
+
             const newGrade = average === null
             ? '-'
             : formatGrade(average);
-    
+
             if (gradeCell.textContent !== newGrade) {
                 gradeCell.textContent = newGrade;
             }
-    
+
             // Permite consultar a nota exata posteriormente
             gradeCell.dataset.average = average === null
                 ? ''
                 : average.toString();
-    
+
             gradeCell.title = average === null
                 ? 'Sem atividades'
                 : `Média de conclusão: ${formatGrade(average)}`;
         }
-    
+
         // --------------------------------------------------------
         // Processa todas as linhas de alunos
         // --------------------------------------------------------
         function updateAllRows() {
             const table = getTable();
             if (!table) return;
-    
+
             table.querySelectorAll('tbody tr').forEach(updateStudentRow);
         }
-    
+
         // --------------------------------------------------------
         // Inicialização
         // --------------------------------------------------------
         function init() {
             const table = getTable();
             if (!table) return;
-    
+
             createHeader();
             updateAllRows();
+            applyStickyGradeStyles();
         }
-    
+
         // --------------------------------------------------------
         // Observa mudanças na tabela
         // --------------------------------------------------------
         function observe() {
             const table = getTable();
             if (!table) return;
-    
+
             const observer = new MutationObserver(() => {
                 init();
             });
-    
+
             observer.observe(table, {
                 childList: true,
                 subtree: true,
             });
-    
+
             return observer;
         }
-    
+
         // --------------------------------------------------------
         // API pública
         // --------------------------------------------------------
@@ -1685,11 +1686,61 @@ function abrirModalRegistros(lista, tituloModal = "Links dos Registros") {
             updateAllRows,
         };
     })();
-    
+
+    function applyStickyGradeStyles() {
+        const styleId = 'sticky-grade-column-style';
+
+        if (document.getElementById(styleId)) return;
+
+        const style = document.createElement('style');
+        style.id = styleId;
+
+        style.textContent = `
+        /* Nota fixa à direita */
+        #completion-progress th.nota,
+        #completion-progress td.nota-atual {
+            position: sticky;
+            right: 0;
+            z-index: 5;
+            background: #fff;
+            box-shadow: -3px 0 5px rgba(0, 0, 0, 0.10);
+        }
+
+        #completion-progress th.nota {
+            z-index: 10;
+            background: #f1f1f1;
+        }
+
+        #completion-progress td.nota-atual {
+            font-weight: bold;
+            text-align: center;
+        }
+
+        /* Nome do aluno fixo à esquerda */
+        #completion-progress tbody th {
+            position: sticky;
+            left: 0;
+            z-index: 6;
+            background: #fff;
+            box-shadow: 3px 0 5px rgba(0, 0, 0, 0.08);
+        }
+
+        /* Cabeçalho da primeira coluna */
+        #completion-progress thead th:first-child {
+            position: sticky;
+            left: 0;
+            z-index: 11;
+            background: #f1f1f1;
+        }
+    `;
+
+        document.head.appendChild(style);
+    }
+
     // Executa
     StudentGrades.init();
     StudentGrades.observe();
-    
+
     waitForKeyElements('#course-index', executarAjustes);
     waitForKeyElements('.card.course-card', criarLinksRelatorioCards);
     waitForKeyElements('table.bft-report-table', criarBotaoLinksAvaliacoesPorSemana);
